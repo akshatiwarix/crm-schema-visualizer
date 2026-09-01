@@ -5,21 +5,33 @@ type ObjectBoxProps = {
   object: SchemaObject;
   x: number;
   y: number;
+  highlighted?: boolean;
+  dimmed?: boolean;
+  onPointerDown?: (e: React.PointerEvent<SVGGElement>) => void;
 };
 
-export function ObjectBox({ object, x, y }: ObjectBoxProps) {
+export function ObjectBox({ object, x, y, highlighted, dimmed, onPointerDown }: ObjectBoxProps) {
   const height = boxHeight(object);
   const left = x - BOX_WIDTH / 2;
   const top = y - height / 2;
 
   return (
-    <g transform={`translate(${left}, ${top})`}>
+    <g
+      transform={`translate(${left}, ${top})`}
+      opacity={dimmed ? 0.3 : 1}
+      onPointerDown={onPointerDown}
+      className="cursor-grab active:cursor-grabbing"
+    >
       <rect
         width={BOX_WIDTH}
         height={height}
         rx={8}
-        className="fill-white stroke-slate-300 dark:fill-slate-900 dark:stroke-slate-700"
-        strokeWidth={1.5}
+        className={
+          highlighted
+            ? "fill-white stroke-sky-500 dark:fill-slate-900"
+            : "fill-white stroke-slate-300 dark:fill-slate-900 dark:stroke-slate-700"
+        }
+        strokeWidth={highlighted ? 2.5 : 1.5}
       />
       <rect width={BOX_WIDTH} height={HEADER_HEIGHT} rx={8} className="fill-slate-800 dark:fill-slate-700" />
       <rect y={HEADER_HEIGHT / 2} width={BOX_WIDTH} height={HEADER_HEIGHT / 2} className="fill-slate-800 dark:fill-slate-700" />

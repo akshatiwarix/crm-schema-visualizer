@@ -7,6 +7,8 @@ type EdgeLineProps = {
   relationship: SchemaRelationship;
   from: NodeRef;
   to: NodeRef;
+  highlighted?: boolean;
+  dimmed?: boolean;
 };
 
 const KIND_LABEL: Record<SchemaRelationship["kind"], string> = {
@@ -16,8 +18,17 @@ const KIND_LABEL: Record<SchemaRelationship["kind"], string> = {
   junction: "many-to-many",
 };
 
-export function EdgeLine({ relationship, from, to }: EdgeLineProps) {
+function tooltipText(relationship: SchemaRelationship): string {
+  const kind = KIND_LABEL[relationship.kind];
+  const field = relationship.fieldName ? ` via ${relationship.fieldName}` : "";
+  return `${relationship.from} → ${relationship.to} (${kind}${field})`;
+}
+
+export function EdgeLine({ relationship, from, to, highlighted, dimmed }: EdgeLineProps) {
   const isSelfReferencing = from.object.name === to.object.name;
+  const strokeClass = highlighted ? "stroke-sky-500" : "stroke-slate-400 dark:stroke-slate-500";
+  const strokeWidth = highlighted ? 2.5 : 1.5;
+  const markerId = highlighted ? "edge-arrow-highlighted" : "edge-arrow";
 
   if (isSelfReferencing) {
     const halfHeight = boxHeight(from.object) / 2;
@@ -27,8 +38,9 @@ export function EdgeLine({ relationship, from, to }: EdgeLineProps) {
     const loopX = right + 46;
     const path = `M ${right} ${top} C ${loopX} ${top}, ${loopX} ${bottom}, ${right} ${bottom}`;
     return (
-      <g>
-        <path d={path} fill="none" className="stroke-slate-400 dark:stroke-slate-500" strokeWidth={1.5} markerEnd="url(#edge-arrow)" />
+      <g opacity={dimmed ? 0.2 : 1}>
+        <title>{tooltipText(relationship)}</title>
+        <path d={path} fill="none" className={strokeClass} strokeWidth={strokeWidth} markerEnd={`url(#${markerId})`} />
         <text x={loopX + 4} y={from.y} className="fill-slate-500 text-[10px] dark:fill-slate-400">
           {KIND_LABEL[relationship.kind]}
         </text>
@@ -46,15 +58,16 @@ export function EdgeLine({ relationship, from, to }: EdgeLineProps) {
   const mid = { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 };
 
   return (
-    <g>
+    <g opacity={dimmed ? 0.2 : 1}>
+      <title>{tooltipText(relationship)}</title>
       <line
         x1={start.x}
         y1={start.y}
         x2={end.x}
         y2={end.y}
-        className="stroke-slate-400 dark:stroke-slate-500"
-        strokeWidth={1.5}
-        markerEnd="url(#edge-arrow)"
+        className={strokeClass}
+        strokeWidth={strokeWidth}
+        markerEnd={`url(#${markerId})`}
       />
       <g transform={`translate(${mid.x}, ${mid.y})`}>
         <rect x={-38} y={-9} width={76} height={16} rx={4} className="fill-slate-100 dark:fill-slate-800" />
